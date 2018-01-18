@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Typeahead (vue)</title>
+</head>
+<body>
+<h1>Typeahead (vue)</h1>
+
+<div class="typeahead">
+<typeahead label="Choose a flavor: " multiselect
+content='["chocolate", "vanilla", "strawberry", "coconut"]'>
+</typeahead>
+</div>
+
+
+<script src="vue.js"></script>
+<script src="typeahead.js"></script>
+<script>
+document.addEventListener ("complete", (e) => alert (`result: ${e.target.value}`));
+</script>
+
+</body>
+</html>
