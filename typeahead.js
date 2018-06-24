@@ -15,15 +15,27 @@ let n = 1;
 while (true) yield n++;
 } // gen
 
+globalData = [];
 
 Vue.component ("typeahead", {
+watch: {
+trigger: function (oldValue, newValue) {
+return this.data ();
+}// trigger
+}, // watch
+
 props: {
 label: {type: String, default: "unlabeled combobox"},
 multiselect: Boolean,
 content: [Array, String]
 }, // props
 
-
+/*watch: {
+content: function (oldValue, newValue) {
+console.log ("content watch: old: ", oldValue, "; new: ", newValue);
+ } // content
+}, // watch
+*/
 template: `<div class="combobox">
 <label>{{label}}
 <input type="text" ref="input" role="combobox"
@@ -73,6 +85,10 @@ mounted: function () {
 this.allItems = this.items.slice();
 message (`typeahead mounted: ${this.items.map(x => x.text)}`);
 }, // mounted
+
+beforeUpdate: function () {
+message ("before update...");
+}, // beforeUpdate
 
 updated: function () {
 message (`typeahead updated: ${this.value()}`);
@@ -145,9 +161,26 @@ if (! this.multiselect) this.items = this.items.map (item => Object.assign({}, i
 
 }, // methods
 
-data: function () {
-let content = this.content;
+
+data: function (__data) {
+let content = __data || this.content;
+content = Array.from(processContent (content));
+console.log ("data:...", content);
+
+
+let _data = Object.assign(
+{},
+componentData,
+{items: content.map (item => Object.assign({}, componentData.item, item))}
+); // Object.assign
+message (_data.toSource());
+
+return _data;
+
+
+function processContent (content) {
 if (content instanceof String || typeof(content) === "string") content = JSON.parse (content);
+console.log ("- type: ", typeof(content));
 
 if (content instanceof Array) content = content.map ((item, index) => {
 return (
@@ -156,15 +189,10 @@ typeof(item) === "object"?
 : {value: index, text: item}
 ); // return
 }); // map
+return content;
+} // processContent
+}, // data
 
-let _data = Object.assign(
-{},
-componentData,
-{items: content.map (item => Object.assign({}, componentData.item, item))}
-); // Object.assign
-message (_data.toSource());
-return _data;
-} // data
 }); // multiselect component
 
 
@@ -177,14 +205,9 @@ element.focus ();
 
 
 
-let vm = new Vue({
-el: ".typeahead"
-}); // root component
-
-
 /// debugging
 function message (text, remove) {
-return;
+//return;
 if (! text) return;
 let el = document.querySelector("#message");
 if (! el) {
