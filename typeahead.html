@@ -56,8 +56,7 @@ console.log ("components: ", components.length);
 document.addEventListener ("complete", (e) => alert (`result: ${e.target.value}`));
 
 modify.addEventListener ("click", () => {
-components[0].content=[1,2,3,4,5];
-components[0].$forceUpdate();
+components[0].items=[1,2,3,4,5];
 });
 
 

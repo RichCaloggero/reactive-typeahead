@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>test (vue)</title>
+
+<style>
+[role="option"][aria-selected="true"] {color: yellow;}
+</style>
+
+</head>
+<body>
+<h1>test (vue)</h1>
+
+<p><button>modify</button></p>
+<div id="app">
+<my-element text="some content"></my-element>
+<my-element text="... more content ..."></my-element>
+</div>
+
+<script src="vue.js"></script>
+<script>
+let $ = document.querySelector.bind(document);
+
+Vue.component ("my-element", {
+props: ["text"],
+
+computed: {
+p2: () => this.text
+}, // computed
+
+template: `<div class="my-element">
+<h2>{{p1}}</h2>
+<button @click="show()">{{text}}</button>
+</div>
+`,
+
+methods: {
+show: function () {alert (`${this.toSource()} has ${this.text}`);}
+}, // methods
+
+
+data: function () {
+
+return {p1: "property 1"};
+} // data
+
+}); // component
+
+
+let vm = new Vue ({
+el: $("#app")
+});
+
+</script>
+
+</body>
+</html>
