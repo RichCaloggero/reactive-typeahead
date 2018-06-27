@@ -6,17 +6,21 @@
 <title>Typeahead (vue)</title>
 
 <style>
-[role="option"][aria-selected="true"] {color: red;}
+[role="option"][aria-selected="true"] {color: yellow;}
 </style>
 
 </head>
 <body>
 <h1>Typeahead (vue)</h1>
 
-<p><button id="repopulate">repopulate</button></p>
-<div class="typeahead">
-<typeahead id="myTypeahead" label="Choose a flavor: " multiselect
-content='["chocolate", "vanilla", "strawberry", "coconut"]'>
+<p><button>modify</button></p>
+<div id="app">
+<typeahead label="Choose a flavor: " multiselect
+v-bind:content='["chocolate", "vanilla", "strawberry", "coconut"]'>
+</typeahead>
+
+<typeahead label="Choose something: " multiselect
+content='["something", "else", "test", "vue", "typeahead"]'>
 </typeahead>
 </div>
 
@@ -40,33 +44,22 @@ normal text editing commands can be used when focus is in the input field
 <script src="typeahead.js"></script>
 <script>
 let $ = document.querySelector.bind(document);
+let modify = $("button");
 
+app = new Vue ({
+el: $("#app")
+});
 
-let vm = new Vue({
-el: ".typeahead",
-data: {content: ""}
-}); // root component
+let components = app.$children;
+console.log ("components: ", components.length);
 
-let myTypeahead = $("#myTypeahead");
 document.addEventListener ("complete", (e) => alert (`result: ${e.target.value}`));
 
-document.querySelector ("#repopulate").addEventListener ("click", () => {
-let content=`["Argentina",
-"Australia",
-"Brazil",
-"Canada",
-"China",
-"France",
-"Germany",
-"India",
-"Mexico",
-"Russia",
-"United States"
-]`;
-myTypeahead.setAttribute ("label", "choose multiple countries: ");
-vm.$children[0].$options.data (content);
-//myTypeahead.dispatchEvent (new CustomEvent("initialize", {bubbles: true}));
-}); // click
+modify.addEventListener ("click", () => {
+components[0].content=[1,2,3,4,5];
+components[0].$forceUpdate();
+});
+
 
 </script>
 

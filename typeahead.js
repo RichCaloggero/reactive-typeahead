@@ -1,7 +1,7 @@
 let componentData = {
 items: [],
 inputMode: true,
-item: {value: null, text: "", selected: false, focus: false}
+item: {value: null, id: "", text: "", selected: false, focus: false}
 };
 
 
@@ -15,27 +15,15 @@ let n = 1;
 while (true) yield n++;
 } // gen
 
-globalData = [];
 
 Vue.component ("typeahead", {
-watch: {
-trigger: function (oldValue, newValue) {
-return this.data ();
-}// trigger
-}, // watch
-
 props: {
 label: {type: String, default: "unlabeled combobox"},
 multiselect: Boolean,
 content: [Array, String]
 }, // props
 
-/*watch: {
-content: function (oldValue, newValue) {
-console.log ("content watch: old: ", oldValue, "; new: ", newValue);
- } // content
-}, // watch
-*/
+
 template: `<div class="combobox">
 <label>{{label}}
 <input type="text" ref="input" role="combobox"
@@ -64,7 +52,8 @@ role="option"
 v-focus-if="item.focus"
 :value="item.value"
 @keydown.space.exact="toggle (index)"
-:key="item.value">
+@click="click (index)"
+:key="item.id || item.value">
 {{item.text}}
 </li></ul>
 </div><!-- .suggestions -->
@@ -86,20 +75,26 @@ this.allItems = this.items.slice();
 message (`typeahead mounted: ${this.items.map(x => x.text)}`);
 }, // mounted
 
-beforeUpdate: function () {
-message ("before update...");
-}, // beforeUpdate
 
 updated: function () {
 message (`typeahead updated: ${this.value()}`);
 }, // update
 
+
 methods: {
+getContent: function () {
+return this.content;
+}, // getContent
+
 filter: function (text) {
-this.items = this.allItems.filter (item => item.text.trim().toLowerCase().startsWith(text.trim().toLowerCase()));
+this.items = this.allItems.filter ((item) => this.$options.methods.defaultFilter(text, item));
 message (`filter (${text}) = ${this.items.map(item => item.text).join(",")}`);
 this.setInputMode ();
 }, // filter
+
+defaultFilter: function (text, item) {
+return item.text.trim().toLowerCase().startsWith(text.trim().toLowerCase());
+}, // defaultFilter
 
 complete: function () {
 this.$refs.input.value = this.value();
@@ -107,9 +102,13 @@ this.setInputMode ();
 this.$refs.input.dispatchEvent (new Event("complete", {bubbles: true}));
 }, // complete
 
-value: function () {
+selectedItems: function () {
+return this.items.filter (item => item.selected);
+}, // selectedItems
+
+value: function (property = "text") {
 return this.items.filter (item => item.selected)
-.map (item => item.text);
+.map (item => item[property]);
 }, // value
 
 
@@ -147,6 +146,11 @@ let _selected = this.multiselect? this.items[index].selected : true;
 this.items.splice(index, 1, Object.assign({}, this.items[index], {focus: true, selected: _selected}));
 }, // setFocus
 
+click: function (index) {
+if (this.multiselect) this.$options.methods.toggle.call (this, index);
+else this.items[index].selected = !this.items[index].selected;
+}, // click
+
 toggle: function (index) {
 if (this.multiselect) {
 let _selected = this.items[index].selected;
@@ -161,26 +165,9 @@ if (! this.multiselect) this.items = this.items.map (item => Object.assign({}, i
 
 }, // methods
 
-
-data: function (__data) {
-let content = __data || this.content;
-content = Array.from(processContent (content));
-console.log ("data:...", content);
-
-
-let _data = Object.assign(
-{},
-componentData,
-{items: content.map (item => Object.assign({}, componentData.item, item))}
-); // Object.assign
-message (_data.toSource());
-
-return _data;
-
-
-function processContent (content) {
+data: function () {
+let content = this.content;
 if (content instanceof String || typeof(content) === "string") content = JSON.parse (content);
-console.log ("- type: ", typeof(content));
 
 if (content instanceof Array) content = content.map ((item, index) => {
 return (
@@ -189,10 +176,15 @@ typeof(item) === "object"?
 : {value: index, text: item}
 ); // return
 }); // map
-return content;
-} // processContent
-}, // data
 
+let _data = Object.assign(
+{},
+componentData,
+{items: content.map (item => Object.assign({}, componentData.item, item))}
+); // Object.assign
+message (_data.toSource());
+return _data;
+} // data
 }); // multiselect component
 
 
@@ -205,9 +197,11 @@ element.focus ();
 
 
 
+
+
 /// debugging
 function message (text, remove) {
-//return;
+return;
 if (! text) return;
 let el = document.querySelector("#message");
 if (! el) {
