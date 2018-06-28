@@ -1,3 +1,4 @@
+{ // begin
 let componentData = {
 items: [],
 inputMode: true,
@@ -163,28 +164,34 @@ this.items = this.items.map (item => Object.assign({}, item, {focus: false}));
 if (! this.multiselect) this.items = this.items.map (item => Object.assign({}, item, {selected: false}));
 }, // unfocusAll
 
-}, // methods
-
-data: function () {
-let content = this.content;
+/// API
+setContent: function (content) {
 if (content instanceof String || typeof(content) === "string") content = JSON.parse (content);
 
 if (content instanceof Array) content = content.map ((item, index) => {
 return (
 typeof(item) === "object"?
-{value: typeof(item.value) === "undefined"? index : value, text: item.text}
-: {value: index, text: item}
+{value: typeof(item.value) === "undefined"? index : value, text: String(item.text)}
+: {value: index, text: String(item)}
 ); // return
 }); // map
+console.log ("addItems: ", content.toSource());
 
-let _data = Object.assign(
-{},
-componentData,
-{items: content.map (item => Object.assign({}, componentData.item, item))}
-); // Object.assign
-message (_data.toSource());
-return _data;
+this.items = content.slice();
+this.allItems = content.slice();
+return this;
+} // setContent
+,  setLabel: function (text) {
+this.label = text;
+return this;
+} // setLabel
+}, // methods
+
+data: function () {
+this.setContent (this.content);
+return Object.assign({}, componentData, {items: this.allItems});
 } // data
+
 }); // multiselect component
 
 
@@ -218,3 +225,4 @@ return text;
 } // message
 
 message ("Ready.");
+} // end

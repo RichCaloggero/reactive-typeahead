@@ -56,7 +56,8 @@ console.log ("components: ", components.length);
 document.addEventListener ("complete", (e) => alert (`result: ${e.target.value}`));
 
 modify.addEventListener ("click", () => {
-components[0].items=[1,2,3,4,5];
+components[0].setContent([1,2,3,4,5])
+.setLabel ("random stuff");
 });
 
 
