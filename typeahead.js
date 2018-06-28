@@ -21,6 +21,7 @@ Vue.component ("typeahead", {
 props: {
 label: {type: String, default: "unlabeled combobox"},
 multiselect: Boolean,
+listClass: {type: String, default: "suggestions"},
 display: {type: String, default: "text"},
 result: {type: String, default: ""},
 content: [Array, String]
@@ -56,6 +57,8 @@ aria-autocomplete="list"
 <ul v-show="!inputMode"
 style="list-style-type:none"
 ref="listbox" role="listbox" id="${id_listbox}"
+class="{listClass}"
+
 @keydown.up.down.exact="navigateList($event.key === 'ArrowDown'? 'next' : 'previous')"
 @keydown.esc.exact="setInputMode"
 @keydown.enter.exact="complete">
@@ -109,16 +112,23 @@ return item.text.trim().toLowerCase().startsWith(text.trim().toLowerCase());
 }, // defaultFilter
 
 complete: function () {
-this.$refs.input.value = this.value(this.result || this.index);
+this.$refs.input.value = this.value(this.result || "text");
 this.setInputMode ();
-this.$refs.input.dispatchEvent (new Event("complete", {bubbles: true}));
+this.$refs.input.dispatchEvent (new CustomEvent("complete", {bubbles: true, detail: this}));
+return this;
 }, // complete
 
 selectedItems: function () {
-return this.items.filter (item => item.selected);
+return this.items.filter (item => item.selected)
+.map (item => {
+item = Object.assign({}, item);
+delete item.focus;
+delete item.selected;
+return item;
+});
 }, // selectedItems
 
-value: function (property = "text") {
+value: function (property) {
 return this.items.filter (item => item.selected)
 .map (item => item[property]);
 }, // value
@@ -274,25 +284,6 @@ function isIdentifier (s) {
 return (/^[_$A-Za-z][_$A-Za-z0-9]*$/).test (s);
 } // isIdentifier
 
-/*function displayItem (p, item) {
-try {
-p = JSON.parse(p);
-} catch (e) {
-alert (`invalid JSON: ${p}`);
-return "";
-} // catch
-
-if (typeof(p) === "string") {
-return item[p];
-} else if (p instanceof Array) {
-return p.map(p => item[p])
-.join (", ");
-} else {
-alert (`display attribute must be a JSON string or array: ${p}`);
-return "";
-} // if
-} // displayItem
-*/
 
 message ("Ready.");
 } // end

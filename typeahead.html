@@ -19,7 +19,7 @@
 content='["chocolate", "vanilla", "strawberry", "coconut"]'>
 </typeahead>
 
-<typeahead label="Choose something: " multiselect display="`${item.value}: ${item.text}`"
+<typeahead label="Choose something: " multiselect display="`${item.value}: ${item.text}`" result="value"
 content='[
 {"text": "something", "value": "598378"},
 {"text": "else", "value": "59829"},
@@ -58,7 +58,7 @@ el: $("#app")
 let components = app.$children;
 console.log ("components: ", components.length);
 
-document.addEventListener ("complete", (e) => alert (`result: ${e.target.value}`));
+document.addEventListener ("complete", (e) => alert (`result: ${JSON.stringify(e.detail.selectedItems())}`));
 
 modify.addEventListener ("click", () => {
 components[0].setContent([1,2,3,4,5])
