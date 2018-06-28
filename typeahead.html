@@ -16,11 +16,16 @@
 <p><button>modify</button></p>
 <div id="app">
 <typeahead label="Choose a flavor: " multiselect
-v-bind:content='["chocolate", "vanilla", "strawberry", "coconut"]'>
+content='["chocolate", "vanilla", "strawberry", "coconut"]'>
 </typeahead>
 
-<typeahead label="Choose something: " multiselect
-content='["something", "else", "test", "vue", "typeahead"]'>
+<typeahead label="Choose something: " multiselect display="`${item.value}: ${item.text}`"
+content='[
+{"text": "something", "value": "598378"},
+{"text": "else", "value": "59829"},
+{"text": "cool", "value": "52778"},
+{"text": "Vue", "value": "21378"}
+]'>
 </typeahead>
 </div>
 

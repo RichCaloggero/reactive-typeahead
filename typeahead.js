@@ -3,7 +3,7 @@ let componentData = {
 items: [],
 inputMode: true,
 item: {value: null, id: "", text: "", selected: false, focus: false}
-};
+}; // componentData
 
 
 /// unique id generation
@@ -21,9 +21,23 @@ Vue.component ("typeahead", {
 props: {
 label: {type: String, default: "unlabeled combobox"},
 multiselect: Boolean,
+display: {type: String, default: "text"},
+result: {type: String, default: ""},
 content: [Array, String]
 }, // props
 
+computed: {
+displayItem () {
+if (isIdentifier(this.display)) {
+return item => item[this.display];
+} else {
+return (new Function (
+"item",
+`return ${this.display}`
+)).bind(this); // new Function
+} // if
+} // displayItem
+}, // computed
 
 template: `<div class="combobox">
 <label>{{label}}
@@ -55,7 +69,7 @@ v-focus-if="item.focus"
 @keydown.space.exact="toggle (index)"
 @click="click (index)"
 :key="item.id || item.value">
-{{item.text}}
+{{displayItem (item)}}
 </li></ul>
 </div><!-- .suggestions -->
 
@@ -83,12 +97,9 @@ message (`typeahead updated: ${this.value()}`);
 
 
 methods: {
-getContent: function () {
-return this.content;
-}, // getContent
 
 filter: function (text) {
-this.items = this.allItems.filter ((item) => this.$options.methods.defaultFilter(text, item));
+this.items = this.allItems.filter ((item) => this.$options.methods.defaultFilter (text, item));
 message (`filter (${text}) = ${this.items.map(item => item.text).join(",")}`);
 this.setInputMode ();
 }, // filter
@@ -98,7 +109,7 @@ return item.text.trim().toLowerCase().startsWith(text.trim().toLowerCase());
 }, // defaultFilter
 
 complete: function () {
-this.$refs.input.value = this.value();
+this.$refs.input.value = this.value(this.result || this.index);
 this.setInputMode ();
 this.$refs.input.dispatchEvent (new Event("complete", {bubbles: true}));
 }, // complete
@@ -166,13 +177,25 @@ if (! this.multiselect) this.items = this.items.map (item => Object.assign({}, i
 
 /// API
 setContent: function (content) {
-if (content instanceof String || typeof(content) === "string") content = JSON.parse (content);
+if (content instanceof String || typeof(content) === "string") {
+try {
+content = JSON.parse (content);
+} catch (e) {
+alert (`invalid JSON: ${content}`);
+return this;
+} // catch
+} // if
 
-if (content instanceof Array) content = content.map ((item, index) => {
+if (! (content instanceof Array)) {
+alert (`invalid content; must be either an array, or JSON array: ${content}`);
+return this;
+} // if
+
+content = content.map ((item, index) => {
 return (
 typeof(item) === "object"?
-{value: typeof(item.value) === "undefined"? index : value, text: String(item.text)}
-: {value: index, text: String(item)}
+{value: typeof(item.value) === "undefined"? String(index) : String(item.value), text: String(item.text)}
+: {value: String(index), text: String(item)}
 ); // return
 }); // map
 console.log ("addItems: ", content.toSource());
@@ -180,8 +203,9 @@ console.log ("addItems: ", content.toSource());
 this.items = content.slice();
 this.allItems = content.slice();
 return this;
-} // setContent
-,  setLabel: function (text) {
+}, // setContent
+
+setLabel: function (text) {
 this.label = text;
 return this;
 } // setLabel
@@ -223,6 +247,52 @@ if (remove) el.innerHTML = `<p>${text}</p>\n`;
 el.appendChild (p);
 return text;
 } // message
+
+
+/// utilities
+
+function displayItem (p, item) {
+try {
+p = JSON.parse(p);
+} catch (e) {
+alert (`invalid JSON: ${p}`);
+return "";
+} // catch
+
+if (typeof(p) === "string") {
+return item[p];
+} else if (p instanceof Array) {
+return p.map(p => item[p])
+.join (", ");
+} else {
+alert (`display attribute must be a JSON string or array: ${p}`);
+return "";
+} // if
+} // displayItem
+
+function isIdentifier (s) {
+return (/^[_$A-Za-z][_$A-Za-z0-9]*$/).test (s);
+} // isIdentifier
+
+/*function displayItem (p, item) {
+try {
+p = JSON.parse(p);
+} catch (e) {
+alert (`invalid JSON: ${p}`);
+return "";
+} // catch
+
+if (typeof(p) === "string") {
+return item[p];
+} else if (p instanceof Array) {
+return p.map(p => item[p])
+.join (", ");
+} else {
+alert (`display attribute must be a JSON string or array: ${p}`);
+return "";
+} // if
+} // displayItem
+*/
 
 message ("Ready.");
 } // end
